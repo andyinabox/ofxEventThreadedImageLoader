@@ -1,21 +1,20 @@
-# ofxThreadedImageLoader
+# ofxEventThreadedImageLoader
 
-Usage its like ofxThreadedImageLoader, but if you add:
-
-
-
-ofAddListener(ImageLoaderEvent().events,this,&**YourClassName::YourCallback**);
+Usage its like ofxEventThreadedImageLoader, but if you add:
 
 
+```
+ofAddListener(ofxTILEvent().events,this,&**YourClassName::YourCallback**);
+```
 
 You get an event knowing if the image its loaded ok or not, and why.
 
 ```
-void YourClassName::YourCallback(ImageLoaderEvent &_e) { 
+void YourClassName::YourCallback(ofxTILEvent &e) { 
     
-	//	_e.loaded (true,false) 
+	//	e.loaded (true,false) 
     
-	//	_e.error_msg (string) 
+	//	e.error_msg (string) 
 
 }
 ```

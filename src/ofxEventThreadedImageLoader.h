@@ -9,10 +9,10 @@
 
 using namespace std;
 
-class ofxThreadedImageLoader : public ofThread {
+class ofxEventThreadedImageLoader : public ofThread {
 public:
-    ofxThreadedImageLoader();
-    ~ofxThreadedImageLoader();
+    ofxEventThreadedImageLoader();
+    ~ofxEventThreadedImageLoader();
 
 	void loadFromDisk(ofImage& image, string file);
 	void loadFromURL(ofImage& image, string url);

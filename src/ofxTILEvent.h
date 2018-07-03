@@ -9,7 +9,7 @@
 #define ofxTILEvent_h
 #include "ofMain.h"
 
-//  TIL is for ofxThreadedImageLoader
+//  TIL is for ofxEventThreadedImageLoader
 
 class ofxTILEvent : public ofEventArgs{
 public:

@@ -1,25 +1,25 @@
-#include "ofxThreadedImageLoader.h"
+#include "ofxEventThreadedImageLoader.h"
 #include <sstream>
-ofxThreadedImageLoader::ofxThreadedImageLoader(){
+ofxEventThreadedImageLoader::ofxEventThreadedImageLoader(){
 	nextID = 0;
-    ofAddListener(ofEvents().update, this, &ofxThreadedImageLoader::update);
-	ofAddListener(ofURLResponseEvent(),this,&ofxThreadedImageLoader::urlResponse);
+    ofAddListener(ofEvents().update, this, &ofxEventThreadedImageLoader::update);
+	ofAddListener(ofURLResponseEvent(),this,&ofxEventThreadedImageLoader::urlResponse);
     
     startThread();
     lastUpdate = 0;
 }
 
-ofxThreadedImageLoader::~ofxThreadedImageLoader(){
+ofxEventThreadedImageLoader::~ofxEventThreadedImageLoader(){
 	images_to_load_from_disk.close();
 	images_to_update.close();
 	waitForThread(true);
-    ofRemoveListener(ofEvents().update, this, &ofxThreadedImageLoader::update);
-	ofRemoveListener(ofURLResponseEvent(),this,&ofxThreadedImageLoader::urlResponse);
+    ofRemoveListener(ofEvents().update, this, &ofxEventThreadedImageLoader::update);
+	ofRemoveListener(ofURLResponseEvent(),this,&ofxEventThreadedImageLoader::urlResponse);
 }
 
 // Load an image from disk.
 //--------------------------------------------------------------
-void ofxThreadedImageLoader::loadFromDisk(ofImage& image, string filename) {
+void ofxEventThreadedImageLoader::loadFromDisk(ofImage& image, string filename) {
 	nextID++;
 	ofImageLoaderEntry entry(image);
 	entry.filename = filename;
@@ -32,7 +32,7 @@ void ofxThreadedImageLoader::loadFromDisk(ofImage& image, string filename) {
 
 // Load an url asynchronously from an url.
 //--------------------------------------------------------------
-void ofxThreadedImageLoader::loadFromURL(ofImage& image, string url) {
+void ofxEventThreadedImageLoader::loadFromURL(ofImage& image, string url) {
 	nextID++;
 	ofImageLoaderEntry entry(image);
 	entry.url = url;
@@ -45,19 +45,19 @@ void ofxThreadedImageLoader::loadFromURL(ofImage& image, string url) {
 
 // Reads from the queue and loads new images.
 //--------------------------------------------------------------
-void ofxThreadedImageLoader::threadedFunction() {
-	thread.setName("ofxThreadedImageLoader " + thread.name());
+void ofxEventThreadedImageLoader::threadedFunction() {
+	thread.setName("ofxEventThreadedImageLoader " + thread.name());
 	ofImageLoaderEntry entry;
 	while( images_to_load_from_disk.receive(entry) ) {
 		if(entry.image->load(entry.filename) )  {
 			images_to_update.send(entry);
 		}else{
-			ofLogError("ofxThreadedImageLoader") << "couldn't load file: \"" << entry.filename << "\"";
+			ofLogError("ofxEventThreadedImageLoader") << "couldn't load file: \"" << entry.filename << "\"";
       //  dispatch event error
       dispatch_event(false,"couldn't load file: \"" + entry.filename + "\"");
     }
 	}
-	ofLogVerbose("ofxThreadedImageLoader") << "finishing thread on closed queue";
+	ofLogVerbose("ofxEventThreadedImageLoader") << "finishing thread on closed queue";
 }
 
 
@@ -65,7 +65,7 @@ void ofxThreadedImageLoader::threadedFunction() {
 // The loaded image is removed from the async_queue and added to the
 // update queue. The update queue is used to update the texture.
 //--------------------------------------------------------------
-void ofxThreadedImageLoader::urlResponse(ofHttpResponse & response) {
+void ofxEventThreadedImageLoader::urlResponse(ofHttpResponse & response) {
 	// this happens in the update thread so no need to lock to access
 	// images_async_loading
 	entry_iterator it = images_async_loading.find(response.request.name);
@@ -78,7 +78,7 @@ void ofxThreadedImageLoader::urlResponse(ofHttpResponse & response) {
 		}
 	}else{
 		// log error.
-		ofLogError("ofxThreadedImageLoader") << "couldn't load url, response status: " << response.status;
+		ofLogError("ofxEventThreadedImageLoader") << "couldn't load url, response status: " << response.status;
 		ofRemoveURLRequest(response.request.getID());
     //  dispatch event  error
     dispatch_event(false,"couldn't load url, response status: " + ofToString(response.status));
@@ -93,7 +93,7 @@ void ofxThreadedImageLoader::urlResponse(ofHttpResponse & response) {
 
 // Check the update queue and update the texture
 //--------------------------------------------------------------
-void ofxThreadedImageLoader::update(ofEventArgs & a){
+void ofxEventThreadedImageLoader::update(ofEventArgs & a){
     // Load 1 image per update so we don't block the gl thread for too long
 	ofImageLoaderEntry entry;
 	if (images_to_update.tryReceive(entry)) {
@@ -104,7 +104,7 @@ void ofxThreadedImageLoader::update(ofEventArgs & a){
 
 //  Event Dispatch
 //--------------------------------------------------------------
-void  ofxThreadedImageLoader::dispatch_event(bool _loaded,string _error_msg)
+void  ofxEventThreadedImageLoader::dispatch_event(bool _loaded,string _error_msg)
 {
   static ofxTILEvent new_event;
   new_event.error_msg = _error_msg;
